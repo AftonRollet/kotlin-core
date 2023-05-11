@@ -24,7 +24,7 @@ class CoffeeMaker {
     private var cups = 9
     private var money = 550
 
-    fun startCoffeeMachine() {
+    fun start() {
         var instruction = ""
         while (instruction != "exit") {
             println("Write action (buy, fill, take, remaining, exit):")

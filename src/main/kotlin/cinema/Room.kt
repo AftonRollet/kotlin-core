@@ -5,27 +5,20 @@ class Room() {
     sealed class BookSeatState {
         object InvalidSeat : BookSeatState()
         object SeatAlreadyBooked : BookSeatState()
-        data class Success(val ticketPrice: Int) : BookSeatState()
+        object Success : BookSeatState()
     }
 
-    val totalPotentialIncome: Int
-        get() {
-            return if (capacity > 60) {
-                val incomeFrontSection = (seatsPerRow * 10) * rowsHalved
-                val incomeBackSection = (seatsPerRow * 8) * (rows - rowsHalved)
-                (incomeFrontSection + incomeBackSection)
-            } else {
-                (seatsPerRow * 10) * rows
-            }
-        }
+    var rows = 0
+        private set
+    var rowsHalved = 0
+        private set
+    var seatsPerRow = 0
+        private set
 
-    private var rows = 0
-    private var rowsHalved = 0
-    private var seatsPerRow = 0
+    var seatPlan = SeatPlan()
+        private set
 
-    val seatPlan by lazy { SeatPlan() }
-
-    private val capacity
+    val capacity
         get() = rows * seatsPerRow
 
     fun setup() {
@@ -34,45 +27,27 @@ class Room() {
         println("Enter the number of seats in each row:")
         seatsPerRow = readln().toInt()
 
-        val divisor = rows % 2
-        if (divisor == 0) {
-            rowsHalved += rows / 2
-        } else {
-            rowsHalved += (rows / 2) - (divisor / 2)
-        }
+        rowsHalved = rows / 2
+        seatPlan = SeatPlan()
     }
 
     fun bookSeat(selectedRowNumber: Int, selectedSeatNumber: Int): BookSeatState {
         return if (seatPlan.isSeatAlreadyTaken(selectedRowNumber, selectedSeatNumber)) {
             BookSeatState.SeatAlreadyBooked
-        } else if (isSeatNumberValid(selectedRowNumber, selectedSeatNumber)) {
+        } else if (isSeatNumberInvalid(selectedRowNumber, selectedSeatNumber)) {
             BookSeatState.InvalidSeat
         } else {
-            seatPlan.bookSeat(selectedRowNumber - 1, selectedSeatNumber)
-            val ticketPrice = calculateTicketPrice(selectedRowNumber)
-            BookSeatState.Success(ticketPrice)
+            seatPlan.bookSeat(selectedRowNumber, selectedSeatNumber)
+            BookSeatState.Success
         }
     }
 
-    private fun isSeatNumberValid(selectedRowNumber: Int, selectedSeatNumber: Int): Boolean {
+    private fun isSeatNumberInvalid(selectedRowNumber: Int, selectedSeatNumber: Int): Boolean {
         return selectedRowNumber == 0 || selectedRowNumber > rows || selectedSeatNumber > seatsPerRow
     }
 
-    private fun calculateTicketPrice(selectedRowNumber: Int): Int {
-        val highPrice = 10
-        val lowPrice = 8
-        return if (capacity <= 60) {
-            highPrice
-        } else {
-            if (selectedRowNumber > rowsHalved) {
-                lowPrice
-            } else {
-                highPrice
-            }
-        }
-    }
 
-    fun getPercentOfTicketsSold(): Double {
+    fun getPercentOfBookedSeats(): Double {
         val ticketsSold = seatPlan.getNumberOfBookedSeats()
         return (ticketsSold.toDouble() / capacity.toDouble()) * 100.0
     }
@@ -93,7 +68,7 @@ class Room() {
             for (x in 1..rows) {
                 val currentRow = mutableListOf<String>()
                 currentRow.add(x.toString())
-                for (x in 1..seatsPerRow) {
+                for (y in 1..seatsPerRow) {
                     currentRow.add("S")
                 }
                 rowsAxis.add(currentRow)

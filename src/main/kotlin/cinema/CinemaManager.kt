@@ -6,8 +6,20 @@ class CinemaManager {
 
     private val room = Room()
 
+    private val totalPotentialIncome: Int
+        get() {
+            return if (room.capacity > 60) {
+                val incomeFrontSection = (room.seatsPerRow * 10) * room.rowsHalved
+                val incomeBackSection = (room.seatsPerRow * 8) * (room.rows - room.rowsHalved)
+                (incomeFrontSection + incomeBackSection)
+            } else {
+                (room.seatsPerRow * 10) * room.rows
+            }
+        }
+
     fun start() {
         room.setup()
+        currentIncome = 0
 
         var menuSelection = printAndGetUserOption()
 
@@ -32,9 +44,9 @@ class CinemaManager {
 
     private fun getStats() {
         println("Number of purchased tickets: ${room.seatPlan.getNumberOfBookedSeats()}")
-        println("Percentage: ${String.format("%.2f", "${room.getPercentOfTicketsSold()}")}%")
+        println("Percentage: ${String.format("%.2f", room.getPercentOfBookedSeats())}%")
         println("Current Income: $$currentIncome")
-        println("Total income: $${room.totalPotentialIncome}")
+        println("Total Income: $${totalPotentialIncome}")
     }
 
     private fun startPurchaseTicketProcess() {
@@ -51,7 +63,7 @@ class CinemaManager {
             startPurchaseTicketProcess()
         }
 
-        when(val result = room.bookSeat(selectedRowNumber = selectedRowNumber, selectedSeatNumber = selectedSeatNumber)) {
+        when(room.bookSeat(selectedRowNumber = selectedRowNumber, selectedSeatNumber = selectedSeatNumber)) {
             Room.BookSeatState.InvalidSeat -> {
                 println("Wrong Input!")
                 println()
@@ -63,8 +75,22 @@ class CinemaManager {
                 startPurchaseTicketProcess()
             }
             is Room.BookSeatState.Success -> {
-                println("Ticket price: $${result.ticketPrice}")
-                currentIncome += result.ticketPrice
+                val ticketPrice = calculateTicketPrice(selectedRowNumber)
+                println("Ticket price: $${ticketPrice}")
+                currentIncome += ticketPrice
+            }
+        }
+    }
+    private fun calculateTicketPrice(selectedRowNumber: Int): Int {
+        val highPrice = 10
+        val lowPrice = 8
+        return if (room.capacity <= 60) {
+            highPrice
+        } else {
+            if (selectedRowNumber > room.rowsHalved) {
+                lowPrice
+            } else {
+                highPrice
             }
         }
     }

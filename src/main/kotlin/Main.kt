@@ -1,8 +1,10 @@
-fun main(args: Array<String>) {
+import cinema.CinemaManager
+
+fun main() {
 
     var selectedProject = getProjectInput()
     val coffeeMaker = CoffeeMaker()
-    val cinemaRoom = Cinema()
+    val cinemaRoom = CinemaManager()
     while (selectedProject != 0) {
         when (selectedProject) {
             1 -> coffeeMaker.start()
